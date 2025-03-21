@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import QRCode from 'react-qr-code';
 import { configuration } from '@lib/rtc';
 import { Scanner, type IDetectedBarcode } from '@yudiel/react-qr-scanner';
-import { z } from 'zod';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/football-trainer/pair/leader')({
   component: PairTrainer,
@@ -13,7 +13,8 @@ type ConnectionData = {
   sd?: RTCSessionDescription | RTCSessionDescriptionInit
   role: "leader" | "follower" | "unknown"
   iceCandidates: RTCIceCandidate[]
-  messages?: string[]
+  flash: boolean
+  messages: string[]
 }
 
 // make sure in line with original type
@@ -28,11 +29,15 @@ type ConnectionData = {
 
 // type SessionDescription = z.infer<typeof SentConnectionData>
 
+function randomChoice() {
+  return Math.random() < 0.5;
+}
+
 function PairTrainer() {
   const pc = useRef(new RTCPeerConnection(configuration));
   const dataChannel = useRef(pc.current.createDataChannel("Signals"));
   const receiveChannel = useRef<RTCDataChannel | null>(null)
-  const [data, setData] = useState<ConnectionData>({ role: "unknown", iceCandidates: [], messages: [] });
+  const [data, setData] = useState<ConnectionData>({ role: "unknown", iceCandidates: [], messages: [], flash: false });
 
   useEffect(() => {
     const onMount = async () => {
@@ -63,6 +68,13 @@ function PairTrainer() {
     onMount();
   }, [pc])
 
+  function flash(timeout: number = 2000) {
+    setData(cur => ({ ...cur, flash: true })) // flash red
+
+    setTimeout(() => {
+      setData(cur => ({ ...cur, flash: false }))
+    }, timeout) // keep flash for 2.5s
+  }
 
   const onScan = useCallback(async (barcodes: IDetectedBarcode[]) => {
     try {
@@ -78,8 +90,16 @@ function PairTrainer() {
         await pc.current.setRemoteDescription(remoteDesc);
 
         dataChannel.current.addEventListener("open", () => {
-          if (dataChannel.current.readyState === "open")
-            dataChannel.current.send("Hello")
+          if (dataChannel.current.readyState === "open") {
+            setInterval(() => {
+              if (randomChoice()) {
+                flash()
+              }
+              else {
+                dataChannel.current.send("flash")
+              }
+            }, 5000)
+          }
         })
 
         setData(cur => ({ ...cur, role: "leader" }));
@@ -100,7 +120,8 @@ function PairTrainer() {
           receiveChannel.current = event.channel
           receiveChannel.current.addEventListener("message", (m) => {
             // add message
-            setData(cur => ({ ...cur, messages: [...(cur.messages ?? []), m.data] }))
+            if (m.data === "flash")
+              flash()
           });
         })
 
@@ -117,7 +138,7 @@ function PairTrainer() {
   }, [])
 
   return (
-    <section>
+    <section className="relative">
       {(data?.sd?.sdp && data.iceCandidates.length > 3) &&
         <>
           Type: {data?.sd?.type}
@@ -133,7 +154,12 @@ function PairTrainer() {
           onScan={onScan} // on scan, generate answer
         />
       </figure>
-      {data?.messages && data.messages.map(m => {
+
+      <div className={cn("w-6/12 aspect-square bg-transparent", data.flash && "bg-red-700")}>
+
+      </div>
+
+      {data.messages.map(m => {
         return <span>{m}</span>
       })}
 
