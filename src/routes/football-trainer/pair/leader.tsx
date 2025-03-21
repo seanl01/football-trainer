@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import QRCode from 'react-qr-code';
 import { configuration } from '@lib/rtc';
 import { Scanner, type IDetectedBarcode } from '@yudiel/react-qr-scanner';
@@ -13,6 +13,7 @@ type ConnectionData = {
   sd?: RTCSessionDescription | RTCSessionDescriptionInit
   role: "leader" | "follower" | "unknown"
   iceCandidates: RTCIceCandidate[]
+  messages?: string[]
 }
 
 // make sure in line with original type
@@ -28,32 +29,33 @@ type ConnectionData = {
 // type SessionDescription = z.infer<typeof SentConnectionData>
 
 function PairTrainer() {
-  const [pc, _] = useState(new RTCPeerConnection(configuration));
-  const [data, setData] = useState<ConnectionData>({ role: "unknown", iceCandidates: [] });
+  const pc = useRef(new RTCPeerConnection(configuration));
+  const dataChannel = useRef(pc.current.createDataChannel("Signals"));
+  const receiveChannel = useRef<RTCDataChannel | null>(null)
+  const [data, setData] = useState<ConnectionData>({ role: "unknown", iceCandidates: [], messages: [] });
 
   useEffect(() => {
     const onMount = async () => {
       // needed for ice candidate generation.
-      pc.createDataChannel("Signals")
 
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
+      const offer = await pc.current.createOffer();
+      await pc.current.setLocalDescription(offer);
 
       // create offer and show in qr code
       setData(cur => ({ ...cur, sd: offer }));
 
-      pc.addEventListener("icecandidate", event => {
+      pc.current.addEventListener("icecandidate", event => {
         if (event.candidate !== null) {
           setData(cur => ({
             ...cur,
             iceCandidates: [...cur.iceCandidates, event.candidate as RTCIceCandidate],
-            sd: pc.currentLocalDescription ?? cur.sd
+            sd: pc.current.currentLocalDescription ?? cur.sd // update sd QR upon added ice candidates
           }))
         }
       })
 
-      pc.addEventListener("connectionstatechange", event => {
-        console.log(pc.connectionState)
+      pc.current.addEventListener("connectionstatechange", event => {
+        console.log("Connection state changed", pc.current.connectionState)
       })
 
     };
@@ -73,26 +75,34 @@ function PairTrainer() {
       if (qrData?.type === "answer") {
         const answer = qrData
         const remoteDesc = new RTCSessionDescription(answer);
-        await pc.setRemoteDescription(remoteDesc);
+        await pc.current.setRemoteDescription(remoteDesc);
 
-        // for (const candidate of qrData.iceCandidates) {
-        //   pc.addIceCandidate(candidate)
-        // }
+        dataChannel.current.addEventListener("open", () => {
+          if (dataChannel.current.readyState === "open")
+            dataChannel.current.send("Hello")
+        })
 
         setData(cur => ({ ...cur, role: "leader" }));
         console.log("I am leader")
+
       }
 
+      // We are follower
       else if (qrData?.type === "offer") {
         const offer = qrData;
-        await pc.setRemoteDescription(new RTCSessionDescription(offer))
+        await pc.current.setRemoteDescription(new RTCSessionDescription(offer))
 
-        // for (const candidate of qrData.iceCandidates) {
-        //   pc.addIceCandidate(candidate)
-        // }
+        const answer = await pc.current.createAnswer();
+        await pc.current.setLocalDescription(answer);
 
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
+        // Ready to receive messages
+        pc.current.addEventListener("datachannel", event => {
+          receiveChannel.current = event.channel
+          receiveChannel.current.addEventListener("message", (m) => {
+            // add message
+            setData(cur => ({ ...cur, messages: [...(cur.messages ?? []), m.data] }))
+          });
+        })
 
         // Display answer
         setData(cur => ({ ...cur, role: "follower", sd: answer }));
@@ -112,7 +122,6 @@ function PairTrainer() {
         <>
           Type: {data?.sd?.type}
           <QRCode
-            // value={import.meta.env.BASE_URL + "pair/follower?sdp=" + encodeURIComponent(data.sd.sdp)}
             value={JSON.stringify(data.sd)}
             size={400}
             className="ml-4 w-6/12 bg-white p-4"
@@ -124,6 +133,9 @@ function PairTrainer() {
           onScan={onScan} // on scan, generate answer
         />
       </figure>
+      {data?.messages && data.messages.map(m => {
+        return <span>{m}</span>
+      })}
 
       {/* {data?.offer && JSON.stringify(data.offer)} */}
     </section>
