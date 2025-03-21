@@ -10,7 +10,7 @@ export const Route = createFileRoute('/football-trainer/pair/leader')({
 })
 
 type ConnectionData = {
-  sd?: RTCSessionDescriptionInit
+  sd?: RTCSessionDescription | RTCSessionDescriptionInit
   role: "leader" | "follower" | "unknown"
   iceCandidates: RTCIceCandidate[]
 }
@@ -46,9 +46,9 @@ function PairTrainer() {
         if (event.candidate !== null) {
           setData(cur => ({
             ...cur,
-            iceCandidates: [...cur.iceCandidates, event.candidate as RTCIceCandidate]
+            iceCandidates: [...cur.iceCandidates, event.candidate as RTCIceCandidate],
+            sd: pc.currentLocalDescription ?? cur.sd
           }))
-
         }
       })
 
@@ -65,31 +65,31 @@ function PairTrainer() {
   const onScan = useCallback(async (barcodes: IDetectedBarcode[]) => {
     try {
       const barcode = barcodes[0];
-      const qrData = JSON.parse(barcode.rawValue) as ConnectionData
+      const qrData = JSON.parse(barcode.rawValue) as RTCSessionDescription
 
       console.log(qrData)
 
       // If scanned QR is an answer, we are the leader
-      if (qrData?.sd?.type === "answer") {
-        const answer = qrData.sd;
+      if (qrData?.type === "answer") {
+        const answer = qrData
         const remoteDesc = new RTCSessionDescription(answer);
         await pc.setRemoteDescription(remoteDesc);
 
-        for (const candidate of qrData.iceCandidates) {
-          pc.addIceCandidate(candidate)
-        }
+        // for (const candidate of qrData.iceCandidates) {
+        //   pc.addIceCandidate(candidate)
+        // }
 
         setData(cur => ({ ...cur, role: "leader" }));
         console.log("I am leader")
       }
 
-      else if (qrData?.sd?.type === "offer") {
-        const offer = qrData.sd;
+      else if (qrData?.type === "offer") {
+        const offer = qrData;
         await pc.setRemoteDescription(new RTCSessionDescription(offer))
 
-        for (const candidate of qrData.iceCandidates) {
-          pc.addIceCandidate(candidate)
-        }
+        // for (const candidate of qrData.iceCandidates) {
+        //   pc.addIceCandidate(candidate)
+        // }
 
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -108,14 +108,14 @@ function PairTrainer() {
 
   return (
     <section>
-      {(data?.sd?.sdp && data.iceCandidates.length > 0) &&
+      {(data?.sd?.sdp && data.iceCandidates.length > 3) &&
         <>
           Type: {data?.sd?.type}
           <QRCode
             // value={import.meta.env.BASE_URL + "pair/follower?sdp=" + encodeURIComponent(data.sd.sdp)}
-            value={JSON.stringify(data)}
+            value={JSON.stringify(data.sd)}
             size={400}
-            className="ml-4 w-6/12"
+            className="ml-4 w-6/12 bg-white p-4"
           />
         </>
       }
@@ -124,10 +124,8 @@ function PairTrainer() {
           onScan={onScan} // on scan, generate answer
         />
       </figure>
-      <span>{pc.connectionState}</span>
 
       {/* {data?.offer && JSON.stringify(data.offer)} */}
-      {/* {JSON.stringify(data?.iceCandidates)} */}
     </section>
   )
 }
