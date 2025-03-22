@@ -13,7 +13,6 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as FootballTrainerIndexImport } from './routes/football-trainer/index'
 import { Route as FootballTrainerPairLeaderImport } from './routes/football-trainer/pair/leader'
-import { Route as FootballTrainerPairFollowerImport } from './routes/football-trainer/pair/follower'
 
 // Create/Update Routes
 
@@ -29,13 +28,6 @@ const FootballTrainerPairLeaderRoute = FootballTrainerPairLeaderImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const FootballTrainerPairFollowerRoute =
-  FootballTrainerPairFollowerImport.update({
-    id: '/football-trainer/pair/follower',
-    path: '/football-trainer/pair/follower',
-    getParentRoute: () => rootRoute,
-  } as any)
-
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -45,13 +37,6 @@ declare module '@tanstack/react-router' {
       path: '/football-trainer'
       fullPath: '/football-trainer'
       preLoaderRoute: typeof FootballTrainerIndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/football-trainer/pair/follower': {
-      id: '/football-trainer/pair/follower'
-      path: '/football-trainer/pair/follower'
-      fullPath: '/football-trainer/pair/follower'
-      preLoaderRoute: typeof FootballTrainerPairFollowerImport
       parentRoute: typeof rootRoute
     }
     '/football-trainer/pair/leader': {
@@ -68,51 +53,36 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/football-trainer': typeof FootballTrainerIndexRoute
-  '/football-trainer/pair/follower': typeof FootballTrainerPairFollowerRoute
   '/football-trainer/pair/leader': typeof FootballTrainerPairLeaderRoute
 }
 
 export interface FileRoutesByTo {
   '/football-trainer': typeof FootballTrainerIndexRoute
-  '/football-trainer/pair/follower': typeof FootballTrainerPairFollowerRoute
   '/football-trainer/pair/leader': typeof FootballTrainerPairLeaderRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/football-trainer/': typeof FootballTrainerIndexRoute
-  '/football-trainer/pair/follower': typeof FootballTrainerPairFollowerRoute
   '/football-trainer/pair/leader': typeof FootballTrainerPairLeaderRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/football-trainer'
-    | '/football-trainer/pair/follower'
-    | '/football-trainer/pair/leader'
+  fullPaths: '/football-trainer' | '/football-trainer/pair/leader'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/football-trainer'
-    | '/football-trainer/pair/follower'
-    | '/football-trainer/pair/leader'
-  id:
-    | '__root__'
-    | '/football-trainer/'
-    | '/football-trainer/pair/follower'
-    | '/football-trainer/pair/leader'
+  to: '/football-trainer' | '/football-trainer/pair/leader'
+  id: '__root__' | '/football-trainer/' | '/football-trainer/pair/leader'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   FootballTrainerIndexRoute: typeof FootballTrainerIndexRoute
-  FootballTrainerPairFollowerRoute: typeof FootballTrainerPairFollowerRoute
   FootballTrainerPairLeaderRoute: typeof FootballTrainerPairLeaderRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   FootballTrainerIndexRoute: FootballTrainerIndexRoute,
-  FootballTrainerPairFollowerRoute: FootballTrainerPairFollowerRoute,
   FootballTrainerPairLeaderRoute: FootballTrainerPairLeaderRoute,
 }
 
@@ -127,15 +97,11 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/football-trainer/",
-        "/football-trainer/pair/follower",
         "/football-trainer/pair/leader"
       ]
     },
     "/football-trainer/": {
       "filePath": "football-trainer/index.tsx"
-    },
-    "/football-trainer/pair/follower": {
-      "filePath": "football-trainer/pair/follower.tsx"
     },
     "/football-trainer/pair/leader": {
       "filePath": "football-trainer/pair/leader.tsx"

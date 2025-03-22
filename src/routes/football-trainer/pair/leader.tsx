@@ -13,8 +13,15 @@ type ConnectionData = {
   sd?: RTCSessionDescription | RTCSessionDescriptionInit
   role: "leader" | "follower" | "unknown"
   iceCandidates: RTCIceCandidate[]
+  connected: boolean
+}
+
+type FlashData = {
   flash: boolean
-  messages: string[]
+  flashComponent: React.ReactNode
+  intervalCleanupId: number
+  interval: number
+  timeout: number
 }
 
 // make sure in line with original type
@@ -37,7 +44,14 @@ function PairTrainer() {
   const pc = useRef(new RTCPeerConnection(configuration));
   const dataChannel = useRef(pc.current.createDataChannel("Signals"));
   const receiveChannel = useRef<RTCDataChannel | null>(null)
-  const [data, setData] = useState<ConnectionData>({ role: "unknown", iceCandidates: [], messages: [], flash: false });
+  const [data, setData] = useState<ConnectionData>({ role: "unknown", iceCandidates: [], connected: false });
+  const [flashData, setFlashData] = useState<FlashData>({
+    flash: false,
+    flashComponent: null,
+    intervalCleanupId: 0,
+    interval: 5000,
+    timeout: 2000
+  });
 
   useEffect(() => {
     const onMount = async () => {
@@ -49,32 +63,17 @@ function PairTrainer() {
       // create offer and show in qr code
       setData(cur => ({ ...cur, sd: offer }));
 
-      pc.current.addEventListener("icecandidate", event => {
-        if (event.candidate !== null) {
-          setData(cur => ({
-            ...cur,
-            iceCandidates: [...cur.iceCandidates, event.candidate as RTCIceCandidate],
-            sd: pc.current.currentLocalDescription ?? cur.sd // update sd QR upon added ice candidates
-          }))
-        }
-      })
-
-      pc.current.addEventListener("connectionstatechange", event => {
-        console.log("Connection state changed", pc.current.connectionState)
-      })
+      pc.current.addEventListener("icecandidate", handleIceCandidate);
+      pc.current.addEventListener("connectionstatechange", handleConnectionStateChange);
 
     };
-
     onMount();
-  }, [pc])
 
-  function flash(timeout: number = 2000) {
-    setData(cur => ({ ...cur, flash: true })) // flash red
+    return () => {
+      cleanup()
+    }
 
-    setTimeout(() => {
-      setData(cur => ({ ...cur, flash: false }))
-    }, timeout) // keep flash for 2.5s
-  }
+  }, [])
 
   const onScan = useCallback(async (barcodes: IDetectedBarcode[]) => {
     try {
@@ -89,18 +88,7 @@ function PairTrainer() {
         const remoteDesc = new RTCSessionDescription(answer);
         await pc.current.setRemoteDescription(remoteDesc);
 
-        dataChannel.current.addEventListener("open", () => {
-          if (dataChannel.current.readyState === "open") {
-            setInterval(() => {
-              if (randomChoice()) {
-                flash()
-              }
-              else {
-                dataChannel.current.send("flash")
-              }
-            }, 5000)
-          }
-        })
+        dataChannel.current.addEventListener("open", handleChannelOpen)
 
         setData(cur => ({ ...cur, role: "leader" }));
         console.log("I am leader")
@@ -116,14 +104,7 @@ function PairTrainer() {
         await pc.current.setLocalDescription(answer);
 
         // Ready to receive messages
-        pc.current.addEventListener("datachannel", event => {
-          receiveChannel.current = event.channel
-          receiveChannel.current.addEventListener("message", (m) => {
-            // add message
-            if (m.data === "flash")
-              flash()
-          });
-        })
+        pc.current.addEventListener("datachannel", handleDataChannel);
 
         // Display answer
         setData(cur => ({ ...cur, role: "follower", sd: answer }));
@@ -137,15 +118,75 @@ function PairTrainer() {
 
   }, [])
 
+  function handleIceCandidate(event: RTCPeerConnectionIceEvent) {
+    if (event.candidate !== null) {
+      setData(cur => ({
+        ...cur,
+        iceCandidates: [...cur.iceCandidates, event.candidate as RTCIceCandidate],
+        sd: pc.current.currentLocalDescription ?? cur.sd // update sd QR upon added ice candidates
+      }))
+    }
+  }
+
+  function handleConnectionStateChange() {
+    console.log("Connection state changed: ", pc.current.connectionState)
+    setData(cur => ({ ...cur, connected: pc.current.connectionState === "connected" }))
+  }
+
+  function flash(timeout: number = flashData.timeout) {
+    setFlashData(cur => ({ ...cur, flash: true })) // flash red
+
+    setTimeout(() => {
+      setFlashData(cur => ({ ...cur, flash: false }))
+    }, timeout) // keep flash for 2.5s
+  }
+
+  function cleanup() {
+    console.log("Unmounting PairTrainer")
+    pc.current.removeEventListener("icecandidate", handleIceCandidate);
+    pc.current.removeEventListener("connectionstatechange", handleConnectionStateChange);
+    pc.current.close();
+    dataChannel.current.close();
+    receiveChannel.current?.close();
+    clearInterval(flashData.intervalCleanupId)
+  }
+
+  function handleChannelOpen() {
+    if (dataChannel.current.readyState === "open") {
+      const intervalId = setInterval(() => {
+        if (randomChoice()) {
+          flash()
+        }
+        else {
+          dataChannel.current.send("flash")
+        }
+      }, flashData.interval)
+
+      setFlashData(cur => ({ ...cur, intervalCleanupId: intervalId }))
+    }
+  }
+
+  function handleDataChannel(event: RTCDataChannelEvent) {
+    receiveChannel.current = event.channel;
+    receiveChannel.current.addEventListener("message", handleMessage);
+  }
+
+  function handleMessage(event: MessageEvent) {
+    if (event.data === "flash") {
+      flash();
+    }
+  }
+
   return (
     <section className="relative">
-      {(data?.sd?.sdp && data.iceCandidates.length > 3) &&
+      <span>Ice candidate count: {data.iceCandidates.length} </span>
+      {(data?.sd?.sdp && !data.connected) &&
         <>
           Type: {data?.sd?.type}
           <QRCode
             value={JSON.stringify(data.sd)}
-            size={400}
-            className="ml-4 w-6/12 bg-white p-4"
+            size={200}
+            className="aspect-square bg-white p-2 rounded-md"
           />
         </>
       }
@@ -155,13 +196,9 @@ function PairTrainer() {
         />
       </figure>
 
-      <div className={cn("w-6/12 aspect-square bg-transparent", data.flash && "bg-red-700")}>
+      <div className={cn("w-6/12 aspect-square bg-transparent", flashData.flash && "bg-red-700")}>
 
       </div>
-
-      {data.messages.map(m => {
-        return <span>{m}</span>
-      })}
 
       {/* {data?.offer && JSON.stringify(data.offer)} */}
     </section>

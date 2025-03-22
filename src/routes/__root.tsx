@@ -4,11 +4,11 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 export const Route = createRootRoute({
   component: () => (
     <>
-      <main>
-        <nav></nav>
+      <nav></nav>
+      <main className="p-4">
         <Outlet />
-        <TanStackRouterDevtools />
       </main>
+      <TanStackRouterDevtools />
     </>
   ),
 })
