@@ -4,6 +4,7 @@ import QRCode from 'react-qr-code';
 import { configuration } from '@lib/rtc';
 import { Scanner, type IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import { cn } from '@/lib/utils';
+import { Responsive } from '@/components/responsive';
 
 export const Route = createFileRoute('/football-trainer/pair/leader')({
   component: PairTrainer,
@@ -20,7 +21,8 @@ type FlashData = {
   flash: boolean
   flashComponent: React.ReactNode
   intervalCleanupId: number
-  interval: number
+  minInterval: number
+  maxInterval: number
   timeout: number
 }
 
@@ -49,9 +51,11 @@ function PairTrainer() {
     flash: false,
     flashComponent: null,
     intervalCleanupId: 0,
-    interval: 5000,
+    minInterval: 5000,
+    maxInterval: 5000,
     timeout: 2000
   });
+  const [inScanMode, setInScanMode] = useState(false);
 
   useEffect(() => {
     const onMount = async () => {
@@ -88,7 +92,7 @@ function PairTrainer() {
         const remoteDesc = new RTCSessionDescription(answer);
         await pc.current.setRemoteDescription(remoteDesc);
 
-        dataChannel.current.addEventListener("open", handleChannelOpen)
+        dataChannel.current.addEventListener("open", startFlashing)
 
         setData(cur => ({ ...cur, role: "leader" }));
         console.log("I am leader")
@@ -104,7 +108,7 @@ function PairTrainer() {
         await pc.current.setLocalDescription(answer);
 
         // Ready to receive messages
-        pc.current.addEventListener("datachannel", handleDataChannel);
+        pc.current.addEventListener("datachannel", startReceiveFlashing);
 
         // Display answer
         setData(cur => ({ ...cur, role: "follower", sd: answer }));
@@ -151,7 +155,7 @@ function PairTrainer() {
     clearInterval(flashData.intervalCleanupId)
   }
 
-  function handleChannelOpen() {
+  function startFlashing() {
     if (dataChannel.current.readyState === "open") {
       const intervalId = setInterval(() => {
         if (randomChoice()) {
@@ -160,42 +164,84 @@ function PairTrainer() {
         else {
           dataChannel.current.send("flash")
         }
-      }, flashData.interval)
+      }, flashData.minInterval)
 
       setFlashData(cur => ({ ...cur, intervalCleanupId: intervalId }))
     }
   }
 
-  function handleDataChannel(event: RTCDataChannelEvent) {
+  function startReceiveFlashing(event: RTCDataChannelEvent) {
     receiveChannel.current = event.channel;
-    receiveChannel.current.addEventListener("message", handleMessage);
+    receiveChannel.current.addEventListener("message", receiveFlash);
   }
 
-  function handleMessage(event: MessageEvent) {
+  function receiveFlash(event: MessageEvent) {
     if (event.data === "flash") {
       flash();
     }
   }
 
   return (
-    <section className="relative">
-      <span>Ice candidate count: {data.iceCandidates.length} </span>
-      {(data?.sd?.sdp && !data.connected) &&
-        <>
-          Type: {data?.sd?.type}
-          <QRCode
-            value={JSON.stringify(data.sd)}
-            size={200}
-            className="aspect-square bg-white p-2 rounded-md"
-          />
-        </>
-      }
-      <figure className="w-6/12">
-        <Scanner
-          onScan={onScan} // on scan, generate answer
-        />
-      </figure>
+    <section className="relative grid grid-cols-1 gap-4">
+      {/* name of each tab group should be unique */}
+      {/* <figure className="rounded-full bg-accent dark:bg-accent/70 p-2 px-4 text-sm border border-accent-content/30 dark:border-accent/30 mb-2 text-white font-medium">Connected</figure> */}
+      <section className="flex items-center justify-center">
 
+        <div className="form-control">
+          <label className="label cursor-pointer">
+            <span className="label-text text-sm text-base-content">Show QR</span>
+            <input type="checkbox" className="toggle border-base-content-100 text-base-content-100 bg-base-content-100" checked={inScanMode} onChange={() => setInScanMode(cur => !cur)} />
+            <span className="label-text text-sm text-base-content">Scan QR</span>
+          </label>
+        </div>
+
+      </section>
+
+      <section className="grid grid-cols-1 p-4 w-full relative">
+        <article
+          className={cn(
+            "flex items-center flex-col transition-all duration-300 ease-in-out w-full",
+            inScanMode ? "opacity-0 translate-x-full" : "opacity-100 translate-x-0"
+          )}
+        >
+          {(data?.sd?.sdp && !data.connected) &&
+            <>
+              <Responsive
+                xs={
+                  <QRCode
+                    value={JSON.stringify(data.sd)}
+                    size={300}
+                    className="aspect-square bg-white p-2 rounded-md"
+                  />
+                }
+                sm={
+                  <QRCode
+                    value={JSON.stringify(data.sd)}
+                    size={400}
+                    className="aspect-square bg-white p-2 rounded-md"
+                  />
+                }
+              />
+              <span>Type: {data?.sd?.type}</span>
+            </>
+          }
+        </article>
+
+        <article className={cn(
+          "absolute top-4 flex flex-col items-center w-full transition-all duration-300 ease-in-out",
+          inScanMode ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-full"
+        )}>
+          <figure className="w-[300px] sm:w-[400px]">
+            <Scanner
+              onScan={onScan} // on scan, generate answer
+              classNames={{
+                video: "rounded-md", container: "rounded-md"
+              }}
+            /></figure>
+        </article>
+      </section>
+
+      <span>Ice candidate count: {data.iceCandidates.length} </span>
       <div className={cn("w-6/12 aspect-square bg-transparent", flashData.flash && "bg-red-700")}>
 
       </div>
