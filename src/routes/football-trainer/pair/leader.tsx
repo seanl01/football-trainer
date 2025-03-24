@@ -1,5 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { createElement, useCallback, useEffect, useRef, useState } from 'react'
+import { createFileRoute } from '@tanstack/react-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { configuration } from '@lib/rtc';
 import { Scanner, type IDetectedBarcode } from '@yudiel/react-qr-scanner';
@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { Responsive } from '@/components/responsive';
 import { Connected } from '@/components/connected';
 import { Slider } from '@/components/slider';
-import { Pause, PersonStanding, Play, PlayIcon, Volleyball, type LucideProps } from 'lucide-react';
+import { Pause, PersonStanding, Play, Volleyball, type LucideProps } from 'lucide-react';
 
 export const Route = createFileRoute('/football-trainer/pair/leader')({
   component: PairTrainer,
