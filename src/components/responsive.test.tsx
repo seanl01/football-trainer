@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { Responsive } from './responsive';
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
@@ -19,6 +18,7 @@ describe('Responsive component', () => {
           '--breakpoint-xl': '80rem',
           '--breakpoint-2xl': '96rem',
         };
+        //@ts-ignore
         return breakpoints[prop] || '';
       }
     } as CSSStyleDeclaration);
