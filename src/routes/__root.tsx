@@ -7,7 +7,7 @@ export const Route = createRootRoute({
       <nav className="pt-6 px-6">
         {/* <header className="text-lg font-bold">Trainer</header> */}
       </nav>
-      <main className="p-6">
+      <main className="p-6 overflow-x-hidden">
         <Outlet />
       </main>
       <TanStackRouterDevtools />

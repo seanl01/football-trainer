@@ -1,20 +1,25 @@
-export function Slider() {
+interface SliderProps {
+  min: number
+  max: number
+  step: number
+  suffix: string
+  value: any
+  disabled?: boolean
+  onChange: React.ChangeEventHandler<HTMLInputElement>
+}
+
+
+export function Slider({ min = 0, max = 100, step = 25, suffix = "", value, disabled, onChange }: SliderProps) {
   return (
     <div className="w-full max-w-xs">
-      <input type="range" min={0} max="100" className="range" step="25" />
+      <label className="mb-2 inline-block">Interval between flash</label>
+      <input type="range" min={min} max={max} className="range range-xs" step={step} value={value} disabled={disabled} onChange={onChange} />
       <div className="flex justify-between px-2.5 mt-2 text-xs">
-        <span>•</span>
-        <span>•</span>
-        <span>•</span>
-        <span>•</span>
-        <span>•</span>
-      </div>
-      <div className="flex justify-between px-2.5 mt-2 text-xs">
-        <span>1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
-        <span>5</span>
+        {
+          Array(max - min + 1).fill(0).map((_, i) => {
+            return <span key={i}>{min + step * i}{suffix}</span>
+          })
+        }
       </div>
     </div>
   )
