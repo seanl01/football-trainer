@@ -220,17 +220,17 @@ function PairTrainer() {
       <Connected isConnected={data.connected} className="w-3/6 place-self-center shadow-md"></Connected>
 
       {
-        flashData.isFlashing &&
-        <>
-          {flashOn}
-          <div className={cn("w-8/12 aspect-2/3 place-self-center transition-all", {
+        data.connected &&
+        (flashData.isFlashing ? <>
+          {/* Webkit for iPhone compatability */}
+          <div className={cn("w-8/12 aspect-3/5 place-self-center transition-all [-webkit-transform:translateZ(0)]", {
             "opacity-100 scale-100": flashOn,
             "opacity-0 scale-50": !flashOn
           })}>
             {/*  This is the icon */}
-            {icons[flashData.iconName]({ className: "w-full h-full" })}
+            {icons[flashData.iconName]({ className: "w-full h-full drop-shadow-[0px_0px_32px_green]" })}
           </div>
-        </>
+        </> : <p className="w-8/12 aspect-3/5 place-self-center grid place-items-center text-center text-md text-base-content/70">Click start</p>)
       }
 
       {!data.connected &&
@@ -293,35 +293,37 @@ function PairTrainer() {
         </>
       }
 
-      <section tabIndex={0} className="collapse collapse-arrow bg-base-100 border-base-300 border rounded-lg">
-        <header className="collapse-title font-semibold">Settings</header>
-        <main className="collapse-content text-sm grid grid-cols-1 gap-4">
+      {data.role !== "follower" &&
+        <section tabIndex={0} className="collapse collapse-arrow bg-base-100 border-base-300 border rounded-lg">
+          <header className="collapse-title font-semibold">Settings</header>
+          <main className="collapse-content text-sm grid grid-cols-1 gap-4">
 
-          <Slider min={1} max={5} step={1} suffix="s" value={flashData.minIntervalSecs} disabled={data.role === "follower"} onChange={(e) => {
-            const secs = parseInt(e.target.value)
-            setFlashData(cur => ({ ...cur, minIntervalSecs: secs }))
-          }}>
-          </Slider>
+            <Slider min={1} max={5} step={1} suffix="s" value={flashData.minIntervalSecs} onChange={(e) => {
+              const secs = parseInt(e.target.value)
+              setFlashData(cur => ({ ...cur, minIntervalSecs: secs }))
+            }}>
+            </Slider>
 
-          {/* <Slider min={1} max={5} step={1} suffix="s" value={flashData.maxIntervalSecs} onChange={(e) =>
+            {/* <Slider min={1} max={5} step={1} suffix="s" value={flashData.maxIntervalSecs} onChange={(e) =>
             setFlashData(cur => ({ ...cur, maxIntervalSecs: parseInt(e.target.value) }))}>
           </Slider> */}
 
-          <label className="-mb-4">Icon</label>
-          <ul className="menu menu-horizontal bg-base-200 rounded-box gap-1">
-            <li>
-              <a className={cn(flashData.iconName === "player" && "menu-active")} onClick={() => setFlashData(cur => ({ ...cur, iconName: "player" }))}>
-                <PersonStanding />
-              </a>
-            </li>
-            <li>
-              <a className={cn(flashData.iconName === "ball" && "menu-active")} onClick={() => setFlashData(cur => ({ ...cur, iconName: "ball" }))}>
-                <img src={footballSvg} alt="football" className="h-[24px] w-[24px]" />
-              </a>
-            </li>
-          </ul>
-        </main>
-      </section>
+            <label className="-mb-4">Icon</label>
+            <ul className="menu menu-horizontal bg-base-200 rounded-box gap-1">
+              <li>
+                <a className={cn(flashData.iconName === "player" && "menu-active")} onClick={() => setFlashData(cur => ({ ...cur, iconName: "player" }))}>
+                  <PersonStanding />
+                </a>
+              </li>
+              <li>
+                <a className={cn(flashData.iconName === "ball" && "menu-active")} onClick={() => setFlashData(cur => ({ ...cur, iconName: "ball" }))}>
+                  <img src={footballSvg} alt="football" className="h-[24px] w-[24px]" />
+                </a>
+              </li>
+            </ul>
+          </main>
+        </section>
+      }
 
       <button className="btn btn-accent btn-lg rounded-lg" disabled={!data.connected || data.role !== "leader"}
         onClick={flashData.isFlashing ? stopFlashing : startFlashing}>

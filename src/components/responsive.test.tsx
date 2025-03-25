@@ -126,14 +126,6 @@ describe('Responsive component', () => {
       window.dispatchEvent(new Event('resize'));
     });
 
-    // We need to re-render since our component is using the updated matchMedia
-    render(
-      <Responsive
-        xs={<div>xs content</div>}
-        md={<div>md content</div>}
-      />
-    );
-
     expect(screen.getByText('md content'))
   });
 
