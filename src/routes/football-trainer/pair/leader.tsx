@@ -7,7 +7,8 @@ import { cn } from '@/lib/utils';
 import { Responsive } from '@/components/responsive';
 import { Connected } from '@/components/connected';
 import { Slider } from '@/components/slider';
-import { Pause, PersonStanding, Play, Volleyball, type LucideProps } from 'lucide-react';
+import { Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
+import footballSvg from "@/assets/football.svg"
 
 export const Route = createFileRoute('/football-trainer/pair/leader')({
   component: PairTrainer,
@@ -47,7 +48,7 @@ function randomChoice() {
 }
 
 const icons = {
-  ball: (props: LucideProps) => <Volleyball {...props} />,
+  ball: (props: LucideProps) => <img src={footballSvg} alt="football" className={props.className} />,
   player: (props: LucideProps) => <PersonStanding {...props} />,
 }
 
@@ -315,7 +316,7 @@ function PairTrainer() {
             </li>
             <li>
               <a className={cn(flashData.iconName === "ball" && "menu-active")} onClick={() => setFlashData(cur => ({ ...cur, iconName: "ball" }))}>
-                <Volleyball />
+                <img src={footballSvg} alt="football" className="h-[24px] w-[24px]" />
               </a>
             </li>
           </ul>
