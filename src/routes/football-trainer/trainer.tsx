@@ -117,7 +117,7 @@ function Trainer() {
         {
           (flashData.isFlashPlaying ? <>
             {/* Webkit for iPhone compatability */}
-            <section>
+            <section className="grid place-items-center">
               <div className={cn("w-8/12 aspect-3/5 place-self-center transition-all [-webkit-transform:translateZ(0)]", {
                 "opacity-100 scale-100": flashOn,
                 "opacity-0 scale-50": !flashOn
