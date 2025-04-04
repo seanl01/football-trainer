@@ -59,7 +59,7 @@ function Trainer() {
 
   function cleanup() {
     console.log("Unmounting PairTrainer")
-    clearInterval(flashData.timeoutCleanupId)
+    clearTimeout(flashData.timeoutCleanupId)
     if (speechSynthRef.current) {
       speechSynthRef.current.cancel();
     }
@@ -102,7 +102,7 @@ function Trainer() {
   function stopFlashing() {
     setFlashData(cur => ({ ...cur, isFlashPlaying: false }))
     // clear Interval
-    clearInterval(flashData.timeoutCleanupId)
+    clearTimeout(flashData.timeoutCleanupId)
   }
 
   return (

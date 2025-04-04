@@ -165,7 +165,7 @@ function PairTrainer() {
     pc.current.close();
     dataChannel.current.close();
     receiveChannel.current?.close();
-    clearInterval(flashData.timeoutCleanupId)
+    clearTimeout(flashData.timeoutCleanupId)
   }
 
   useEffect(() => {
@@ -214,7 +214,7 @@ function PairTrainer() {
   function stopFlashing() {
     setFlashData(cur => ({ ...cur, isFlashPlaying: false }))
     // clear Interval
-    clearInterval(flashData.timeoutCleanupId)
+    clearTimeout(flashData.timeoutCleanupId)
   }
 
   function startReceiveFlashing(event: RTCDataChannelEvent) {
