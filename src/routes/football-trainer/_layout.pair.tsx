@@ -10,7 +10,7 @@ import { Slider } from '@/components/slider';
 import { Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
 import footballSvg from "@/assets/football.svg"
 
-export const Route = createFileRoute('/football-trainer/pair')({
+export const Route = createFileRoute('/football-trainer/_layout/pair')({
   component: PairTrainer,
 })
 

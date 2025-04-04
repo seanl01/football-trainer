@@ -7,9 +7,9 @@ import { createFileRoute } from '@tanstack/react-router';
 import { type IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import { ArrowLeft, ArrowRight, Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { FlashData } from "./pair";
+import type { FlashData } from "./_layout.pair"
 
-export const Route = createFileRoute('/football-trainer/trainer')({
+export const Route = createFileRoute('/football-trainer/_layout/trainer')({
   component: RouteComponent,
 })
 
