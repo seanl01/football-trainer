@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { createRef, useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { configuration } from '@lib/rtc';
 import { Scanner, type IDetectedBarcode } from '@yudiel/react-qr-scanner';
@@ -21,11 +21,11 @@ type ConnectionData = {
   connected: boolean
 }
 
-type FlashData = {
+export type FlashData = {
   flashComponent: React.ReactNode
-  isFlashing: boolean
+  isFlashPlaying: boolean
   iconName: "ball" | "player"
-  intervalCleanupId: number
+  timeoutCleanupId: number
   minIntervalSecs: number
   maxIntervalSecs: number
   timeoutSecs: number
@@ -59,13 +59,15 @@ function PairTrainer() {
   const [data, setData] = useState<ConnectionData>({ role: "unknown", iceCandidates: [], connected: false });
   const [flashData, setFlashData] = useState<FlashData>({
     flashComponent: null,
-    isFlashing: false,
-    intervalCleanupId: 0,
+    isFlashPlaying: false,
+    timeoutCleanupId: 0,
     iconName: "ball",
     minIntervalSecs: 3,
     maxIntervalSecs: 3,
     timeoutSecs: 1
   });
+
+  const flashDataRef = useRef(flashData);
   const [flashOn, setFlashOn] = useState(false);
   const [inScanMode, setInScanMode] = useState(false);
 
@@ -163,32 +165,56 @@ function PairTrainer() {
     pc.current.close();
     dataChannel.current.close();
     receiveChannel.current?.close();
-    clearInterval(flashData.intervalCleanupId)
+    clearInterval(flashData.timeoutCleanupId)
   }
+
+  useEffect(() => {
+    flashDataRef.current = flashData;
+  }, [flashData])
 
   function startFlashing() {
     if (dataChannel.current.readyState === "open") {
-      const updated = { ...flashData, isFlashing: true }
+      const updated = { ...flashData, isFlashPlaying: true }
       setFlashData(updated)
       dataChannel.current.send(JSON.stringify(updated)) // send settings
 
-      const intervalId = setInterval(() => {
+      flashDataRef.current.isFlashPlaying = true;
+
+      // const intervalId = setInterval(() => {
+      //   if (randomChoice()) {
+      //     flash()
+      //   }
+      //   else {
+      //     dataChannel.current.send("flash")
+      //   }
+      // }, flashData.minIntervalSecs * 1000)
+
+      function createTimeout() {
+        if (!flashDataRef.current.isFlashPlaying) return;
+
         if (randomChoice()) {
           flash()
         }
         else {
           dataChannel.current.send("flash")
         }
-      }, flashData.minIntervalSecs * 1000)
+        const interval = (flashData.minIntervalSecs + Math.random() *
+            (flashData.maxIntervalSecs - flashData.minIntervalSecs)) * 1000;
 
-      setFlashData(cur => ({ ...cur, intervalCleanupId: intervalId }))
+        const timeout = setTimeout(createTimeout, interval)
+        setFlashData(cur => ({ ...cur, timeoutCleanupId: timeout }))
+      }
+
+      createTimeout();
+
+      // setFlashData(cur => ({ ...cur, intervalCleanupId: intervalId }))
     }
   }
 
   function stopFlashing() {
-    setFlashData(cur => ({ ...cur, isFlashing: false }))
+    setFlashData(cur => ({ ...cur, isFlashPlaying: false }))
     // clear Interval
-    clearInterval(flashData.intervalCleanupId)
+    clearInterval(flashData.timeoutCleanupId)
   }
 
   function startReceiveFlashing(event: RTCDataChannelEvent) {
@@ -197,8 +223,8 @@ function PairTrainer() {
   }
 
   function receiveFlash(event: MessageEvent) {
-    if (!flashData.isFlashing)
-      setFlashData(cur => ({ ...cur, isFlashing: true }))
+    if (!flashData.isFlashPlaying)
+      setFlashData(cur => ({ ...cur, isFlashPlaying: true }))
 
     if (event.data === "flash") {
       flash();
@@ -221,7 +247,7 @@ function PairTrainer() {
 
       {
         data.connected &&
-        (flashData.isFlashing ? <>
+        (flashData.isFlashPlaying ? <>
           {/* Webkit for iPhone compatability */}
           <div className={cn("w-8/12 aspect-3/5 place-self-center transition-all [-webkit-transform:translateZ(0)]", {
             "opacity-100 scale-100": flashOn,
@@ -298,15 +324,19 @@ function PairTrainer() {
           <header className="collapse-title font-semibold">Settings</header>
           <main className="collapse-content text-sm grid grid-cols-1 gap-4">
 
-            <Slider min={1} max={5} step={1} suffix="s" value={flashData.minIntervalSecs} onChange={(e) => {
+            <Slider min={1} max={5} step={1} suffix="s" value={flashData.minIntervalSecs} label="Min interval in secs" onChange={(e) => {
               const secs = parseInt(e.target.value)
+              if (secs > flashData.maxIntervalSecs) return;
               setFlashData(cur => ({ ...cur, minIntervalSecs: secs }))
             }}>
             </Slider>
 
-            {/* <Slider min={1} max={5} step={1} suffix="s" value={flashData.maxIntervalSecs} onChange={(e) =>
-            setFlashData(cur => ({ ...cur, maxIntervalSecs: parseInt(e.target.value) }))}>
-          </Slider> */}
+            <Slider min={1} max={5} step={1} suffix="s" value={flashData.maxIntervalSecs} label="Max interval in secs" onChange={(e) => {
+              const secs = parseInt(e.target.value)
+              if (secs < flashData.minIntervalSecs) return;
+              setFlashData(cur => ({ ...cur, maxIntervalSecs: secs }))
+            }}>
+            </Slider>
 
             <label className="-mb-4">Icon</label>
             <ul className="menu menu-horizontal bg-base-200 rounded-box gap-1">
@@ -326,9 +356,9 @@ function PairTrainer() {
       }
 
       <button className="btn btn-accent btn-lg rounded-lg" disabled={!data.connected || data.role !== "leader"}
-        onClick={flashData.isFlashing ? stopFlashing : startFlashing}>
+        onClick={flashData.isFlashPlaying ? stopFlashing : startFlashing}>
 
-        {flashData.isFlashing
+        {flashData.isFlashPlaying
           ? <><Pause />Pause</>
           : <><Play />Start</>
         }

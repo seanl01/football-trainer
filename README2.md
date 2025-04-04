@@ -1,14 +1,30 @@
-### Sequence
+# Football Trainer
+
+Fully client-side football training tool for reaction stimulus during individual training. Try out [here.](https://seanl01.github.io/football-trainer)
+
+## Background
+
+This project started off to meet my own training needs. I found that it was difficult to simulate any unpredictable stimulus when training on my own. The conjecture is that involving some sort of random stimulus in training improves decision making during games. At the same time, I also wanted to sharpen my web development skills, particularly with the use of WebRTC. This project offered me the opportunity to do both.
+
+## Features
+
+### A. Individual reaction training
+
+### B. Paired Device training
+
+This feature allows the user to pair two devices, acting as dynamic indicators for the user to react to. Once paired, a randomly selected device will "flash" with a symbol, and the user must react to it. The devices can be set up in different locations and can be used in a variety of training scenarios. For example, the user can place devices at two different sides and practice dribbling or passing to the device that lights up.
+
+#### **Implementation**
+
+The pairing is performed using WebRTC. The sequence is as follows:
 
 1. Both peers generate offer QR codes.
 1. The peer whose QR code is first scanned becomes the leader.
 1. Upon scanning the leader's QR code, the follower generates an answer QR code.
 1. The leader scans the answer QR code.
-1. We differentiate a leader scanning from a follower scanning by the SDP type field. One is an offer and one is an answer
 
-### DEVLOG
+- We differentiate a leader scanning from a follower scanning by the SDP type field. One is an offer and one is an answer
 
-### TODO
+## Installation
 
-- Allow settings sync
-- Nicer aspect ratio for flash
+## Limitations
