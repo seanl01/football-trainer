@@ -1,14 +1,14 @@
 import { Outlet, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import "../App.css"
 
 export const Route = createRootRoute({
   component: () => (
     <>
-      <main>
-        <nav></nav>
+      <main className="p-6 overflow-x-hidden">
         <Outlet />
-        <TanStackRouterDevtools />
       </main>
+      <TanStackRouterDevtools />
     </>
   ),
 })
