@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
 import { configuration } from '@lib/rtc';
@@ -7,10 +7,10 @@ import { cn } from '@/lib/utils';
 import { Responsive } from '@/components/responsive';
 import { Connected } from '@/components/connected';
 import { Slider } from '@/components/slider';
-import { Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
+import { ChevronLeft, Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
 import footballSvg from "@/assets/football.svg"
 
-export const Route = createFileRoute('/football-trainer/_layout/pair')({
+export const Route = createFileRoute('/football-trainer/pair')({
   component: PairTrainer,
 })
 
@@ -241,6 +241,11 @@ function PairTrainer() {
   }
 
   return (
+    <>
+    <Link to="/football-trainer" className="p-1 btn btn-ghost">
+      <ChevronLeft/>
+      Home
+    </Link>
     <section className="relative grid grid-cols-1 gap-4">
       {/* name of each tab group should be unique */}
       <Connected isConnected={data.connected} className="w-3/6 place-self-center shadow-md"></Connected>
@@ -375,5 +380,6 @@ function PairTrainer() {
 
       {/* {data?.offer && JSON.stringify(data.offer)} */}
     </section >
+    </>
   )
 }

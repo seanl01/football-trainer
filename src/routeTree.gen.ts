@@ -8,175 +8,111 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as FootballTrainerIndexImport } from './routes/football-trainer/index'
-import { Route as FootballTrainerLayoutImport } from './routes/football-trainer/_layout'
-import { Route as FootballTrainerLayoutTrainerImport } from './routes/football-trainer/_layout.trainer'
-import { Route as FootballTrainerLayoutPairImport } from './routes/football-trainer/_layout.pair'
-
-// Create Virtual Routes
-
-const FootballTrainerImport = createFileRoute('/football-trainer')()
+import { Route as FootballTrainerTrainerImport } from './routes/football-trainer/trainer'
+import { Route as FootballTrainerPairImport } from './routes/football-trainer/pair'
 
 // Create/Update Routes
 
-const FootballTrainerRoute = FootballTrainerImport.update({
-  id: '/football-trainer',
-  path: '/football-trainer',
+const FootballTrainerIndexRoute = FootballTrainerIndexImport.update({
+  id: '/football-trainer/',
+  path: '/football-trainer/',
   getParentRoute: () => rootRoute,
 } as any)
 
-const FootballTrainerIndexRoute = FootballTrainerIndexImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => FootballTrainerRoute,
+const FootballTrainerTrainerRoute = FootballTrainerTrainerImport.update({
+  id: '/football-trainer/trainer',
+  path: '/football-trainer/trainer',
+  getParentRoute: () => rootRoute,
 } as any)
 
-const FootballTrainerLayoutRoute = FootballTrainerLayoutImport.update({
-  id: '/_layout',
-  getParentRoute: () => FootballTrainerRoute,
-} as any)
-
-const FootballTrainerLayoutTrainerRoute =
-  FootballTrainerLayoutTrainerImport.update({
-    id: '/trainer',
-    path: '/trainer',
-    getParentRoute: () => FootballTrainerLayoutRoute,
-  } as any)
-
-const FootballTrainerLayoutPairRoute = FootballTrainerLayoutPairImport.update({
-  id: '/pair',
-  path: '/pair',
-  getParentRoute: () => FootballTrainerLayoutRoute,
+const FootballTrainerPairRoute = FootballTrainerPairImport.update({
+  id: '/football-trainer/pair',
+  path: '/football-trainer/pair',
+  getParentRoute: () => rootRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/football-trainer': {
-      id: '/football-trainer'
-      path: '/football-trainer'
-      fullPath: '/football-trainer'
-      preLoaderRoute: typeof FootballTrainerImport
+    '/football-trainer/pair': {
+      id: '/football-trainer/pair'
+      path: '/football-trainer/pair'
+      fullPath: '/football-trainer/pair'
+      preLoaderRoute: typeof FootballTrainerPairImport
       parentRoute: typeof rootRoute
     }
-    '/football-trainer/_layout': {
-      id: '/football-trainer/_layout'
-      path: '/football-trainer'
-      fullPath: '/football-trainer'
-      preLoaderRoute: typeof FootballTrainerLayoutImport
-      parentRoute: typeof FootballTrainerRoute
+    '/football-trainer/trainer': {
+      id: '/football-trainer/trainer'
+      path: '/football-trainer/trainer'
+      fullPath: '/football-trainer/trainer'
+      preLoaderRoute: typeof FootballTrainerTrainerImport
+      parentRoute: typeof rootRoute
     }
     '/football-trainer/': {
       id: '/football-trainer/'
-      path: '/'
-      fullPath: '/football-trainer/'
+      path: '/football-trainer'
+      fullPath: '/football-trainer'
       preLoaderRoute: typeof FootballTrainerIndexImport
-      parentRoute: typeof FootballTrainerImport
-    }
-    '/football-trainer/_layout/pair': {
-      id: '/football-trainer/_layout/pair'
-      path: '/pair'
-      fullPath: '/football-trainer/pair'
-      preLoaderRoute: typeof FootballTrainerLayoutPairImport
-      parentRoute: typeof FootballTrainerLayoutImport
-    }
-    '/football-trainer/_layout/trainer': {
-      id: '/football-trainer/_layout/trainer'
-      path: '/trainer'
-      fullPath: '/football-trainer/trainer'
-      preLoaderRoute: typeof FootballTrainerLayoutTrainerImport
-      parentRoute: typeof FootballTrainerLayoutImport
+      parentRoute: typeof rootRoute
     }
   }
 }
 
 // Create and export the route tree
 
-interface FootballTrainerLayoutRouteChildren {
-  FootballTrainerLayoutPairRoute: typeof FootballTrainerLayoutPairRoute
-  FootballTrainerLayoutTrainerRoute: typeof FootballTrainerLayoutTrainerRoute
-}
-
-const FootballTrainerLayoutRouteChildren: FootballTrainerLayoutRouteChildren = {
-  FootballTrainerLayoutPairRoute: FootballTrainerLayoutPairRoute,
-  FootballTrainerLayoutTrainerRoute: FootballTrainerLayoutTrainerRoute,
-}
-
-const FootballTrainerLayoutRouteWithChildren =
-  FootballTrainerLayoutRoute._addFileChildren(
-    FootballTrainerLayoutRouteChildren,
-  )
-
-interface FootballTrainerRouteChildren {
-  FootballTrainerLayoutRoute: typeof FootballTrainerLayoutRouteWithChildren
-  FootballTrainerIndexRoute: typeof FootballTrainerIndexRoute
-}
-
-const FootballTrainerRouteChildren: FootballTrainerRouteChildren = {
-  FootballTrainerLayoutRoute: FootballTrainerLayoutRouteWithChildren,
-  FootballTrainerIndexRoute: FootballTrainerIndexRoute,
-}
-
-const FootballTrainerRouteWithChildren = FootballTrainerRoute._addFileChildren(
-  FootballTrainerRouteChildren,
-)
-
 export interface FileRoutesByFullPath {
-  '/football-trainer': typeof FootballTrainerLayoutRouteWithChildren
-  '/football-trainer/': typeof FootballTrainerIndexRoute
-  '/football-trainer/pair': typeof FootballTrainerLayoutPairRoute
-  '/football-trainer/trainer': typeof FootballTrainerLayoutTrainerRoute
+  '/football-trainer/pair': typeof FootballTrainerPairRoute
+  '/football-trainer/trainer': typeof FootballTrainerTrainerRoute
+  '/football-trainer': typeof FootballTrainerIndexRoute
 }
 
 export interface FileRoutesByTo {
+  '/football-trainer/pair': typeof FootballTrainerPairRoute
+  '/football-trainer/trainer': typeof FootballTrainerTrainerRoute
   '/football-trainer': typeof FootballTrainerIndexRoute
-  '/football-trainer/pair': typeof FootballTrainerLayoutPairRoute
-  '/football-trainer/trainer': typeof FootballTrainerLayoutTrainerRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
-  '/football-trainer': typeof FootballTrainerRouteWithChildren
-  '/football-trainer/_layout': typeof FootballTrainerLayoutRouteWithChildren
+  '/football-trainer/pair': typeof FootballTrainerPairRoute
+  '/football-trainer/trainer': typeof FootballTrainerTrainerRoute
   '/football-trainer/': typeof FootballTrainerIndexRoute
-  '/football-trainer/_layout/pair': typeof FootballTrainerLayoutPairRoute
-  '/football-trainer/_layout/trainer': typeof FootballTrainerLayoutTrainerRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/football-trainer'
-    | '/football-trainer/'
     | '/football-trainer/pair'
     | '/football-trainer/trainer'
+    | '/football-trainer'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/football-trainer'
     | '/football-trainer/pair'
     | '/football-trainer/trainer'
+    | '/football-trainer'
   id:
     | '__root__'
-    | '/football-trainer'
-    | '/football-trainer/_layout'
+    | '/football-trainer/pair'
+    | '/football-trainer/trainer'
     | '/football-trainer/'
-    | '/football-trainer/_layout/pair'
-    | '/football-trainer/_layout/trainer'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
-  FootballTrainerRoute: typeof FootballTrainerRouteWithChildren
+  FootballTrainerPairRoute: typeof FootballTrainerPairRoute
+  FootballTrainerTrainerRoute: typeof FootballTrainerTrainerRoute
+  FootballTrainerIndexRoute: typeof FootballTrainerIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  FootballTrainerRoute: FootballTrainerRouteWithChildren,
+  FootballTrainerPairRoute: FootballTrainerPairRoute,
+  FootballTrainerTrainerRoute: FootballTrainerTrainerRoute,
+  FootballTrainerIndexRoute: FootballTrainerIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -189,35 +125,19 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/football-trainer"
-      ]
-    },
-    "/football-trainer": {
-      "filePath": "football-trainer",
-      "children": [
-        "/football-trainer/_layout",
+        "/football-trainer/pair",
+        "/football-trainer/trainer",
         "/football-trainer/"
       ]
     },
-    "/football-trainer/_layout": {
-      "filePath": "football-trainer/_layout.tsx",
-      "parent": "/football-trainer",
-      "children": [
-        "/football-trainer/_layout/pair",
-        "/football-trainer/_layout/trainer"
-      ]
+    "/football-trainer/pair": {
+      "filePath": "football-trainer/pair.tsx"
+    },
+    "/football-trainer/trainer": {
+      "filePath": "football-trainer/trainer.tsx"
     },
     "/football-trainer/": {
-      "filePath": "football-trainer/index.tsx",
-      "parent": "/football-trainer"
-    },
-    "/football-trainer/_layout/pair": {
-      "filePath": "football-trainer/_layout.pair.tsx",
-      "parent": "/football-trainer/_layout"
-    },
-    "/football-trainer/_layout/trainer": {
-      "filePath": "football-trainer/_layout.trainer.tsx",
-      "parent": "/football-trainer/_layout"
+      "filePath": "football-trainer/index.tsx"
     }
   }
 }
