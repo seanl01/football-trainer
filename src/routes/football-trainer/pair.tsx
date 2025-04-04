@@ -165,7 +165,8 @@ function PairTrainer() {
     pc.current.close();
     dataChannel.current.close();
     receiveChannel.current?.close();
-    clearTimeout(flashData.timeoutCleanupId)
+    flashDataRef.current.isFlashPlaying = false;
+    clearTimeout(flashDataRef.current.timeoutCleanupId)
   }
 
   useEffect(() => {
@@ -203,6 +204,7 @@ function PairTrainer() {
 
         const timeout = setTimeout(createTimeout, interval)
         setFlashData(cur => ({ ...cur, timeoutCleanupId: timeout }))
+        flashDataRef.current.timeoutCleanupId = timeout
       }
 
       createTimeout();

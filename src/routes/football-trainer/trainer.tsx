@@ -59,6 +59,7 @@ function Trainer() {
 
   function cleanup() {
     console.log("Unmounting PairTrainer")
+    flashDataRef.current.isFlashPlaying = false;
     clearTimeout(flashData.timeoutCleanupId)
     if (speechSynthRef.current) {
       speechSynthRef.current.cancel();
@@ -94,7 +95,9 @@ function Trainer() {
       const interval = (flashData.minIntervalSecs + Math.random() *
         (flashData.maxIntervalSecs - flashData.minIntervalSecs)) * 1000;
 
-      setTimeout(createTimeout, interval)
+      const timeout = setTimeout(createTimeout, interval)
+      setFlashData(cur => ({ ...cur, timeoutCleanupId: timeout }))
+      flashDataRef.current.timeoutCleanupId = timeout
     }
     createTimeout();
   }
