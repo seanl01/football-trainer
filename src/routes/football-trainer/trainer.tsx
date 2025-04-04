@@ -121,15 +121,15 @@ function Trainer() {
           (flashData.isFlashPlaying ? <>
             {/* Webkit for iPhone compatability */}
             <section className="grid place-items-center">
-              <div className={cn("w-8/12 aspect-3/5 place-self-center transition-all [-webkit-transform:translateZ(0)]", {
+              <div className={cn("w-8/12 aspect-3/4 place-self-center grid place-items-center transition-all [-webkit-transform:translateZ(0)]", {
                 "opacity-100 scale-100": flashOn,
                 "opacity-0 scale-50": !flashOn
               })}>
                 {/*  This is the icon */}
-                {icons[flashData.iconName]({ className: "w-full h-full drop-shadow-[0px_0px_32px_green]" })}
+                {icons[flashData.iconName]({ className: "w-full h-fit drop-shadow-[0px_0px_32px_green]" })}
               </div>
-              <figure className="grid place-items-center min-h-40 relative mb-2">
-                <ArrowLeft className={cn("absolute w-36 h-36 transition-all opacity-0", flashData.direction === "left" && flashOn && "opacity-100")} />
+              <figure className="grid place-items-center relative mb-2">
+                <ArrowLeft className={cn("w-36 h-36 transition-all opacity-0", flashData.direction === "left" && flashOn && "opacity-100")} />
                 <ArrowRight className={cn("absolute w-36 h-36 transition-all opacity-0", flashData.direction === "right" && flashOn && "opacity-100")} />
               </figure>
             </section>
