@@ -1,6 +1,4 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Responsive } from '@/components/responsive'
-import { Smartphone } from 'lucide-react'
 import footballSvg from '@/assets/football.svg'
 
 export const Route = createFileRoute('/football-trainer/')({
