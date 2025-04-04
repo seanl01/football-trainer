@@ -1,10 +1,7 @@
 import footballSvg from "@/assets/football.svg";
-import { Connected } from '@/components/connected';
 import { Slider } from '@/components/slider';
 import { cn } from '@/lib/utils';
-import { configuration } from '@lib/rtc';
 import { createFileRoute } from '@tanstack/react-router';
-import { type IDetectedBarcode } from '@yudiel/react-qr-scanner';
 import { ArrowLeft, ArrowRight, Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FlashData } from "./_layout.pair"
