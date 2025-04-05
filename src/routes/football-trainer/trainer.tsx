@@ -1,10 +1,10 @@
 import footballSvg from "@/assets/football.svg";
 import { Slider } from '@/components/slider';
 import { cn } from '@/lib/utils';
-import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowLeft, ArrowRight, ChevronLeft, Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
+import { createFileRoute } from '@tanstack/react-router';
+import { ArrowLeft, ArrowRight, Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { FlashData } from "./pair"
+import type { FlashData } from "./pair";
 import { Nav } from "@/components/nav";
 
 export const Route = createFileRoute('/football-trainer/trainer')({
