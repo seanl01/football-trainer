@@ -331,14 +331,14 @@ function PairTrainer() {
           <header className="collapse-title font-semibold">Settings</header>
           <main className="collapse-content text-sm grid grid-cols-1 gap-4">
 
-            <Slider min={1} max={5} step={1} suffix="s" value={flashData.minIntervalSecs} label="Min interval in secs" onChange={(e) => {
+            <Slider min={1} max={25} step={1} suffix="s" value={flashData.minIntervalSecs} label="Min interval in secs" onChange={(e) => {
               const secs = parseInt(e.target.value)
               if (secs > flashData.maxIntervalSecs) return;
               setFlashData(cur => ({ ...cur, minIntervalSecs: secs }))
             }}>
             </Slider>
 
-            <Slider min={1} max={5} step={1} suffix="s" value={flashData.maxIntervalSecs} label="Max interval in secs" onChange={(e) => {
+            <Slider min={1} max={25} step={1} suffix="s" value={flashData.maxIntervalSecs} label="Max interval in secs" onChange={(e) => {
               const secs = parseInt(e.target.value)
               if (secs < flashData.minIntervalSecs) return;
               setFlashData(cur => ({ ...cur, maxIntervalSecs: secs }))
