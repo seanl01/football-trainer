@@ -111,7 +111,7 @@ function Trainer() {
 
   return (
     <>
-      <Nav backLink="/football-trainer" backText="Home" infoTitle="Individual Trainer" infoContent={
+      <Nav backLink="/football-trainer/" backText="Home" infoTitle="Individual Trainer" infoContent={
         <div className="flex flex-col gap-2 ">
           <section className="text-sm text-base-content/70 my-2">
             <p>Challenge your reactions using individual trainer. An icon will flash on your screen at a random interval you set, with a random direction (left or right). React quick!</p>
