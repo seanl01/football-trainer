@@ -5,6 +5,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft, ArrowRight, ChevronLeft, Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FlashData } from "./pair"
+import { Nav } from "@/components/nav";
 
 export const Route = createFileRoute('/football-trainer/trainer')({
   component: RouteComponent,
@@ -110,10 +111,19 @@ function Trainer() {
 
   return (
     <>
-      <Link to="/football-trainer" className="p-1 btn btn-ghost">
-        <ChevronLeft/>
-        Home
-      </Link>
+      <Nav backLink="/football-trainer" backText="Home" infoTitle="Individual Trainer" infoContent={
+        <div className="flex flex-col gap-2 ">
+          <p className="text-sm text-base-content/70 my-2">
+            <p>Challenge your reactions using individual trainer. An icon will flash on your screen at a random interval you set, with a random direction (left or right). React quick!</p>
+            <div className="divider"></div>
+            <ol className="*:my-1">
+              <li>1. Set minimum and maximum interval. The icon will flash at a random interval within this range.</li>
+              <li>2. Set the icon of choice and toggle whether you want a speech signal as well ("left!" and "right!")</li>
+              <li>3. Click play to get started!</li>
+            </ol>
+          </p>
+        </div>
+      } />
       <section className="relative grid grid-cols-1 gap-4">
         {/* name of each tab group should be unique */}
 
@@ -126,7 +136,7 @@ function Trainer() {
                 "opacity-0 scale-50": !flashOn
               })}>
                 {/*  This is the icon */}
-                {icons[flashData.iconName]({ className: "w-full h-full drop-shadow-[0px_0px_32px_green]" })}
+                {icons[flashData.iconName]({ className: "w-full h-full drop-shadow-[0px_0px_32px_var(--color-success)]" })}
               </div>
               <figure className="grid place-items-center relative py-4">
                 <ArrowLeft className={cn("w-36 h-36 transition-all opacity-0", flashData.direction === "left" && flashOn && "opacity-100")} />
