@@ -1,5 +1,7 @@
 # Football Trainer
 
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+
 Fully client-side football training tool for reaction stimulus during individual training. Try out [here.](https://seanl01.github.io/football-trainer)
 
 ## Background

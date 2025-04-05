@@ -113,7 +113,7 @@ function Trainer() {
     <>
       <Nav backLink="/football-trainer" backText="Home" infoTitle="Individual Trainer" infoContent={
         <div className="flex flex-col gap-2 ">
-          <p className="text-sm text-base-content/70 my-2">
+          <section className="text-sm text-base-content/70 my-2">
             <p>Challenge your reactions using individual trainer. An icon will flash on your screen at a random interval you set, with a random direction (left or right). React quick!</p>
             <div className="divider"></div>
             <ol className="*:my-1">
@@ -121,7 +121,7 @@ function Trainer() {
               <li>2. Set the icon of choice and toggle whether you want a speech signal as well ("left!" and "right!")</li>
               <li>3. Click play to get started!</li>
             </ol>
-          </p>
+          </section>
         </div>
       } />
       <section className="relative grid grid-cols-1 gap-4">

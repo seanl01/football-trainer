@@ -245,7 +245,7 @@ function PairTrainer() {
     <>
       <Nav backLink="/football-trainer" backText="Home" infoTitle="Pair trainer" infoContent={
         <div className="flex flex-col gap-2 ">
-          <p className="text-sm text-base-content/70 my-2">
+          <section className="text-sm text-base-content/70 my-2">
             <p>Pair two devices for a dynamic training experience. Each device can be placed around your training area, and will take turns flashing. You can set things like the min and maximum interval between flashes. <br />For best results, use devices on the same network (Wifi or Hotspot)</p>
             <div className="badge badge-soft badge-info mt-2 text-xs">ICE CANDIDATE COUNT: {data.iceCandidates.length}</div>
             <div className="divider"></div>
@@ -255,7 +255,7 @@ function PairTrainer() {
               <li>3. Your devices should now be connected.</li>
               <li>4. Configure settings of your training session. Click play to start.</li>
             </ol>
-          </p>
+          </section>
         </div>
       } />
       <section className="relative grid grid-cols-1 gap-4">
