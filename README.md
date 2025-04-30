@@ -4,6 +4,8 @@
 
 Fully client-side football training tool for reaction stimulus during individual training. Try out [here.](https://seanl01.github.io/football-trainer)
 
+![FootballTrainer](https://github.com/user-attachments/assets/345b5fbb-1d27-4d17-ad42-8a3d2f903b93)
+
 ## Background
 
 This project started off to meet my own training needs. I found that it was difficult to simulate any unpredictable stimulus when training on my own. The conjecture is that involving some sort of random stimulus in training improves decision making during games. At the same time, I also wanted to sharpen my web development skills, particularly with the use of WebRTC. This project offered me the opportunity to do both.
