@@ -2,7 +2,7 @@ import footballSvg from "@/assets/football.svg";
 import { Slider } from '@/components/slider';
 import { cn } from '@/lib/utils';
 import { createFileRoute } from '@tanstack/react-router';
-import { ArrowLeft, ArrowRight, Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Pause, PersonStanding, Play, type LucideProps } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FlashData } from "./pair";
 import { Nav } from "@/components/nav";
@@ -15,18 +15,27 @@ function RouteComponent() {
   return <Trainer />
 }
 
-function randomChoice() {
-  return Math.random() < 0.5;
-}
-
 const icons = {
   ball: (props: LucideProps) => <img src={footballSvg} alt="football" className={props.className} />,
   player: (props: LucideProps) => <PersonStanding {...props} />,
 }
 
+type Direction = "left" | "right" | "up" | "down"
+
+const ALL_DIRECTIONS: Direction[] = ["left", "right", "up", "down"]
+
+// Number of size ticks used to simulate how far away the player is.
+const MIN_SIZE_TICK = 1
+const MAX_SIZE_TICK = 5
+
 type FlashDataIndividual = FlashData & {
-  direction: "left" | "right" | "up" | "down",
-  speech: boolean
+  direction: Direction,
+  enabledDirections: Direction[],
+  speech: boolean,
+  // Size of the player icon (in ticks) to simulate distance from the player.
+  minSize: number,
+  maxSize: number,
+  size: number
 }
 
 function Trainer() {
@@ -39,14 +48,22 @@ function Trainer() {
     maxIntervalSecs: 3,
     timeoutSecs: 1,
     direction: "left",
-    speech: false
+    enabledDirections: ["left", "right"],
+    speech: false,
+    minSize: MAX_SIZE_TICK,
+    maxSize: MAX_SIZE_TICK,
+    size: MAX_SIZE_TICK
   });
 
   const flashDataRef = useRef(flashData);
   const [flashOn, setFlashOn] = useState(false);
   const speechSynthRef = useRef<SpeechSynthesis>(null);
-  const leftUtterance = new SpeechSynthesisUtterance("left");
-  const rightUtterance = new SpeechSynthesisUtterance("right");
+  const utterances: Record<Direction, SpeechSynthesisUtterance> = {
+    left: new SpeechSynthesisUtterance("left"),
+    right: new SpeechSynthesisUtterance("right"),
+    up: new SpeechSynthesisUtterance("up"),
+    down: new SpeechSynthesisUtterance("down"),
+  };
 
   useEffect(() => {
     if ("speechSynthesis" in window) {
@@ -69,11 +86,24 @@ function Trainer() {
 
   const flash = useCallback((timeout: number = flashData.timeoutSecs) => {
     setFlashOn(true) // flash red
-    const direction = randomChoice() ? "left" : "right"
-    setFlashData(cur => ({ ...cur, direction }))
+
+    // Pick a random direction from the ones the user enabled.
+    const directions = flashDataRef.current.enabledDirections.length > 0
+      ? flashDataRef.current.enabledDirections
+      : ALL_DIRECTIONS
+    const direction = directions[Math.floor(Math.random() * directions.length)]
+
+    // Vary the size of the player icon to simulate distance (player icon only).
+    let size = flashDataRef.current.size
+    if (flashDataRef.current.iconName === "player") {
+      const { minSize, maxSize } = flashDataRef.current
+      size = minSize + Math.floor(Math.random() * (maxSize - minSize + 1))
+    }
+
+    setFlashData(cur => ({ ...cur, direction, size }))
 
     if (flashDataRef.current.speech)
-      speechSynthRef?.current?.speak(direction === "left" ? leftUtterance : rightUtterance)
+      speechSynthRef?.current?.speak(utterances[direction])
 
     setTimeout(() => {
       setFlashOn(false)
@@ -109,17 +139,38 @@ function Trainer() {
     clearTimeout(flashData.timeoutCleanupId)
   }
 
+  function toggleDirection(direction: Direction) {
+    setFlashData(cur => {
+      const isEnabled = cur.enabledDirections.includes(direction)
+      // Keep at least one direction enabled.
+      if (isEnabled && cur.enabledDirections.length === 1) return cur
+      const enabledDirections = isEnabled
+        ? cur.enabledDirections.filter(d => d !== direction)
+        : [...cur.enabledDirections, direction]
+      return { ...cur, enabledDirections }
+    })
+  }
+
+  const directionOptions: { direction: Direction, icon: React.ReactNode }[] = [
+    { direction: "left", icon: <ArrowLeft /> },
+    { direction: "right", icon: <ArrowRight /> },
+    { direction: "up", icon: <ArrowUp /> },
+    { direction: "down", icon: <ArrowDown /> },
+  ]
+
   return (
     <>
       <Nav backLink="/football-trainer/" backText="Home" infoTitle="Individual Trainer" infoContent={
         <div className="flex flex-col gap-2 ">
           <section className="text-sm text-base-content/70 my-2">
-            <p>Challenge your reactions using individual trainer. An icon will flash on your screen at a random interval you set, with a random direction (left or right). React quick!</p>
+            <p>Challenge your reactions using individual trainer. An icon will flash on your screen at a random interval you set, with a random direction. React quick!</p>
             <div className="divider"></div>
             <ol className="*:my-1">
               <li>1. Set minimum and maximum interval. The icon will flash at a random interval within this range.</li>
-              <li>2. Set the icon of choice and toggle whether you want a speech signal as well ("left!" and "right!")</li>
-              <li>3. Click play to get started!</li>
+              <li>2. Choose which directions can appear (left, right, up, down). A random one is shown each flash.</li>
+              <li>3. Set the icon of choice and toggle whether you want a speech signal as well ("left!", "right!", "up!", "down!")</li>
+              <li>4. With the player icon, set the min and max size to simulate the player being near or far away.</li>
+              <li>5. Click play to get started!</li>
             </ol>
           </section>
         </div>
@@ -131,16 +182,24 @@ function Trainer() {
           (flashData.isFlashPlaying ? <>
             {/* Webkit for iPhone compatability */}
             <section className="grid place-items-center">
-              <div className={cn("w-8/12 aspect-4/5 place-self-center transition-all [-webkit-transform:translateZ(0)]", {
-                "opacity-100 scale-100": flashOn,
-                "opacity-0 scale-50": !flashOn
-              })}>
-                {/*  This is the icon */}
-                {icons[flashData.iconName]({ className: "w-full h-full drop-shadow-[0px_0px_32px_var(--color-success)]" })}
+              {/* Outer wrapper scales the icon to simulate the player's distance. */}
+              <div
+                className="w-8/12 aspect-4/5 place-self-center grid place-items-center transition-transform duration-300"
+                style={{ transform: `scale(${flashData.iconName === "player" ? flashData.size / MAX_SIZE_TICK : 1})` }}
+              >
+                <div className={cn("w-full h-full transition-all [-webkit-transform:translateZ(0)]", {
+                  "opacity-100 scale-100": flashOn,
+                  "opacity-0 scale-50": !flashOn
+                })}>
+                  {/*  This is the icon */}
+                  {icons[flashData.iconName]({ className: "w-full h-full drop-shadow-[0px_0px_32px_var(--color-success)]" })}
+                </div>
               </div>
               <figure className="grid place-items-center relative py-4">
                 <ArrowLeft className={cn("w-36 h-36 transition-all opacity-0", flashData.direction === "left" && flashOn && "opacity-100")} />
                 <ArrowRight className={cn("absolute w-36 h-36 transition-all opacity-0", flashData.direction === "right" && flashOn && "opacity-100")} />
+                <ArrowUp className={cn("absolute w-36 h-36 transition-all opacity-0", flashData.direction === "up" && flashOn && "opacity-100")} />
+                <ArrowDown className={cn("absolute w-36 h-36 transition-all opacity-0", flashData.direction === "down" && flashOn && "opacity-100")} />
               </figure>
             </section>
           </> : <p className="w-8/12 aspect-3/5 place-self-center grid place-items-center text-center text-md text-base-content/70">Click start</p>)
@@ -191,6 +250,40 @@ function Trainer() {
                   }} />
               </article>
             </section>
+
+            <article>
+              <label className="block mb-1">Directions</label>
+              <ul className="menu menu-horizontal bg-base-200 rounded-box gap-1">
+                {directionOptions.map(({ direction, icon }) => (
+                  <li key={direction}>
+                    <a
+                      className={cn(flashData.enabledDirections.includes(direction) && "menu-active")}
+                      onClick={() => toggleDirection(direction)}
+                    >
+                      {icon}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </article>
+
+            {flashData.iconName === "player" &&
+              <section className="grid grid-cols-1 gap-4">
+                <Slider min={MIN_SIZE_TICK} max={MAX_SIZE_TICK} step={1} suffix="" value={flashData.minSize} label="Min player size (distance)" onChange={(e) => {
+                  const size = parseInt(e.target.value)
+                  if (size > flashData.maxSize) return;
+                  setFlashData(cur => ({ ...cur, minSize: size }))
+                }}>
+                </Slider>
+
+                <Slider min={MIN_SIZE_TICK} max={MAX_SIZE_TICK} step={1} suffix="" value={flashData.maxSize} label="Max player size (distance)" onChange={(e) => {
+                  const size = parseInt(e.target.value)
+                  if (size < flashData.minSize) return;
+                  setFlashData(cur => ({ ...cur, maxSize: size }))
+                }}>
+                </Slider>
+              </section>
+            }
           </main>
         </section>
 
